@@ -1,0 +1,62 @@
+version: '2.0'
+
+services:
+
+  zk:
+    image: wurstmeister/zookeeper
+
+  kafka:
+    image: wurstmeister/kafka
+    expose:
+      - 9092
+    hostname: kafka
+    links:
+      - zk
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "destination:1:1,source:100:1"
+      KAFKA_ZOOKEEPER_CONNECT: zk:2181
+
+  meetup:
+    image: golang
+    working_dir: "/opt/go/src/github.com/robertacosta/go-integration-example"
+    command: bash -c "./bin/build && ./build/meetup server"
+    ports:
+      - "50000:50000"
+    links:
+      - kafka
+      - meetuptest
+    environment:
+      GOPATH: /opt/go/
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_TOPIC: "source"
+      SERVICE_ADDRESS: "0.0.0.0:50000"
+      TEST_SERVICE_ADDRESS: "meetuptest:50010"
+    volumes:
+      - .:/opt/go/src/github.com/robertacosta/go-integration-example
+  meetuptest:
+      image: golang
+      working_dir: "/opt/go/src/github.com/robertacosta/go-integration-example"
+      command: bash -c "./bin/build && ./build/meetup testserver"
+      ports:
+        - "50010:50010"
+      links:
+        - kafka
+      environment:
+        GOPATH: /opt/go/
+        TEST_SERVICE_ADDRESS: "0.0.0.0:50010"
+      volumes:
+        - .:/opt/go/src/github.com/robertacosta/go-integration-example
+  meetupworker:
+      image: golang
+      working_dir: "/opt/go/src/github.com/robertacosta/go-integration-example"
+      command: bash -c "./bin/build && ./build/meetup worker"
+      links:
+        - kafka
+      environment:
+        GOPATH: /opt/go/
+        KAFKA_BROKERS: "kafka:9092"
+        KAFKA_TOPIC: "source"
+      volumes:
+        - .:/opt/go/src/github.com/robertacosta/go-integration-example

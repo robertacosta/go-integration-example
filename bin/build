@@ -1,0 +1,23 @@
+#!/bin/bash -e
+
+# Get repo root by sub-shelling and getting the parent directory of this script
+DIR=$( cd $(dirname $0)/.. && pwd )
+
+echo -n "Building with "
+go version
+
+BUILDDIR=$DIR/build
+mkdir -pv $BUILDDIR
+
+echo $BUILDDIR
+
+BIN=$BUILDDIR/meetup
+rm -rfv $BIN
+
+cd $DIR
+rm -rfv pkg
+
+echo "=> go build -v -o $BIN ."
+go build -v \
+  -o $BIN \
+  .
