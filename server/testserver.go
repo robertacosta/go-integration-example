@@ -34,7 +34,7 @@ func NewTestServer(config TestConfig) (*TestServer, error) {
 
 func (s *TestServer) initializeRoutes(config TestConfig) {
 
-	testExampleEndpoint := endpoints.TestExmaple{}
+	testExampleEndpoint := endpoints.TestExample{}
 
 	s.router.Handle("/message", http.HandlerFunc(testExampleEndpoint.Get)).Methods("GET")
 	s.router.NotFoundHandler = http.HandlerFunc(endpoints.NotFound)

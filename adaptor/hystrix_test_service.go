@@ -1,12 +1,11 @@
 package adaptor
 
 import (
-	"errors"
-	"net/http"
-
-	"fmt"
-
 	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/robertacosta/go-integration-example/client"
@@ -45,7 +44,7 @@ func (h *HystrixTestService) Request() (*client.Message, error) {
 		}
 		defer resp.Body.Close()
 
-		// If the response was not OK, don't ding the circuit if this was a bad request
+		// If the response was not OK, only ding the circuit if it was 500+ status code
 		if resp.StatusCode != http.StatusOK && (resp.StatusCode >= 500) {
 			return errors.New(fmt.Sprintf("Received a non-200 status code, %d", resp.StatusCode))
 		}
@@ -53,7 +52,14 @@ func (h *HystrixTestService) Request() (*client.Message, error) {
 		err = json.NewDecoder(resp.Body).Decode(message)
 
 		return nil
-	}, nil)
+	}, func(err error) error {
+		// If the circuit opens, then the fallback function is called
+		log.Printf("Circuit Fallback, Error received: %s", err)
+
+		message = &client.Message{Message: "Keep Calm and Eat Pizza"}
+
+		return nil
+	})
 
 	if hystrixErr != nil {
 		return nil, hystrixErr

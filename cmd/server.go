@@ -43,6 +43,8 @@ func startServer(cmd *cobra.Command, args []string) {
 
 	deps := serverDependencies(config)
 
+	defer deps.SyncProducer.Close()
+
 	srv, err := server.NewServer(config, deps)
 	if err != nil {
 		log.Printf("unable to initialize service: %s", err)

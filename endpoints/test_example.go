@@ -7,9 +7,9 @@ import (
 	"github.com/robertacosta/go-integration-example/client"
 )
 
-type TestExmaple struct{}
+type TestExample struct{}
 
-func (e *TestExmaple) Get(w http.ResponseWriter, r *http.Request) {
+func (e *TestExample) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(client.Message{Message: "Hello Go Meetup"})

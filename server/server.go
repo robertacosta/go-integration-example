@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Shopify/sarama"
+	"github.com/afex/hystrix-go/hystrix"
 	"github.com/gorilla/mux"
 	"github.com/robertacosta/go-integration-example/adaptor"
 	"github.com/robertacosta/go-integration-example/endpoints"
@@ -51,7 +52,12 @@ func (s *Server) initializeRoutes(config Config, deps Dependencies) {
 		Topic:        config.KafkaTopic,
 	}
 
+	// optional - if you want to see the stream and use the dashboard
+	hystrixHandler := hystrix.NewStreamHandler()
+	hystrixHandler.Start()
+
 	s.router.Handle("/example", http.HandlerFunc(exampleEndpoint.Get)).Methods("GET")
+	s.router.Handle("/hystrix", hystrixHandler)
 	s.router.NotFoundHandler = http.HandlerFunc(endpoints.NotFound)
 }
 
